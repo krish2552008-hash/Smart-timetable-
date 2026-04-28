@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Attendance System — AI Powered</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f0f2f5;
+  --white:#ffffff;
+  --card:#ffffff;
+  --dark:#0a0f1e;
+  --primary:#1a56db;
+  --primary-light:#e8f0fe;
+  --success:#10b981;
+  --success-light:#d1fae5;
+  --danger:#ef4444;
+  --danger-light:#fee2e2;
+  --warn:#f59e0b;
+  --warn-light:#fef3c7;
+  --text:#1e293b;
+  --muted:#64748b;
+  --border:#e2e8f0;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 16px rgba(0,0,0,0.05);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+}
+
+html{scroll-behavior:smooth}
+body{font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* TOPBAR */
+.topbar{
+  background:var(--dark);
+  color:#fff;
+  padding:0 2rem;
+  height:60px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  z-index:100;
+  box-shadow:0 2px 20px rgba(0,0,0,0.3);
+}
+.topbar-brand{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:1.15rem;
+  letter-spacing:0.02em;
+  display:flex;
+  align-items:center;
+  gap:0.6rem;
+}
+.brand-dot{
+  width:10px;height:10px;
+  background:var(--success);
+  border-radius:50%;
+  animation:pulse 2s infinite;
+  flex-shrink:0;
+}
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  font-size:0.72rem;
+  color:#94a3b8;
+}
+.live-badge{
+  background:rgba(16,185,129,0.2);
+  border:1px solid rgba(16,185,129,0.4);
+  color:#10b981;
+  padding:0.2rem 0.6rem;
+  border-radius:2rem;
+  font-size:0.65rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+}
+#clock{color:#fff;font-size:0.8rem}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 60px)}
+
+/* SIDEBAR */
+.sidebar{
+  background:var(--white);
+  border-right:1px solid var(--border);
+  padding:1.5rem 1rem;
+  display:flex;
+  flex-direction:column;
+  gap:0.25rem;
+}
+.sidebar-section{
+  font-size:0.6rem;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--muted);
+  padding:0.75rem 0.75rem 0.4rem;
+  margin-top:0.5rem;
+}
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:0.75rem;
+  padding:0.7rem 0.75rem;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:0.8rem;
+  color:var(--muted);
+  transition:all 0.15s;
+  border:none;
+  background:none;
+  width:100%;
+  text-align:left;
+}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--primary-light);color:var(--primary);font-weight:500}
+.nav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;
+  background:var(--primary);
+  color:#fff;
+  font-size:0.6rem;
+  padding:0.1rem 0.45rem;
+  border-radius:2rem;
+  min-width:18px;
+  text-align:center;
+}
+
+/* MAIN */
+.main{padding:2rem;overflow-y:auto}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* STATS ROW */
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1rem;
+  margin-bottom:1.5rem;
+}
+.stat-card{
+  background:var(--card);
+  border-radius:14px;
+  padding:1.25rem 1.5rem;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  position:relative;
+  overflow:hidden;
+}
+.stat-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:3px;
+}
+.stat-card.blue::before{background:var(--primary)}
+.stat-card.green::before{background:var(--success)}
+.stat-card.red::before{background:var(--danger)}
+.stat-card.amber::before{background:var(--warn)}
+.stat-label{font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem}
+.stat-val{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;line-height:1;margin-bottom:0.25rem}
+.stat-val.blue{color:var(--primary)}
+.stat-val.green{color:var(--success)}
+.stat-val.red{color:var(--danger)}
+.stat-val.amber{color:var(--warn)}
+.stat-sub{font-size:0.68rem;color:var(--muted)}
+
+/* CAMERA SECTION */
+.cam-section{
+  display:grid;
+  grid-template-columns:1fr 360px;
+  gap:1.5rem;
+  margin-bottom:1.5rem;
+}
+.cam-card{
+  background:var(--card);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  overflow:hidden;
+}
+.cam-header{
+  padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.cam-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem}
+.cam-body{position:relative;background:#0a0f1e;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;overflow:hidden}
+
+/* SIMULATED CAMERA FEED */
+.camera-feed{
+  width:100%;height:100%;
+  position:relative;
+  background:linear-gradient(135deg,#0a0f1e 0%,#0f1829 100%);
+}
+.scan-line{
+  position:absolute;
+  left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg,transparent,rgba(26,86,219,0.8),transparent);
+  animation:scanLine 3s linear infinite;
+  top:0;
+}
+.face-box{
+  position:absolute;
+  border:2px solid var(--success);
+  border-radius:4px;
+  animation:detectFace 4s ease-in-out infinite;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.face-box::before,.face-box::after{
+  content:'';
+  position:absolute;
+  width:12px;height:12px;
+}
+.face-box::before{top:-1px;left:-1px;border-top:2px solid #fff;border-left:2px solid #fff}
+.face-box::after{bottom:-1px;right:-1px;border-bottom:2px solid #fff;border-right:2px solid #fff}
+.face-label{
+  position:absolute;
+  bottom:-28px;
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--success);
+  color:#fff;
+  font-size:0.6rem;
+  padding:0.2rem 0.6rem;
+  border-radius:4px;
+  white-space:nowrap;
+  font-weight:500;
+}
+.face-confidence{
+  position:absolute;
+  top:-22px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,0.7);
+  color:var(--success);
+  font-size:0.6rem;
+  padding:0.15rem 0.5rem;
+  border-radius:3px;
+  white-space:nowrap;
+}
+.grid-overlay{
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(26,86,219,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(26,86,219,0.04) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+.camera-placeholder{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:1rem;
+  color:#334155;
+  font-size:0.8rem;
+  position:absolute;
+  inset:0;
+}
+.camera-placeholder.hidden{display:none}
+
+/* Face avatars in camera */
+.face-avatar{
+  width:90px;height:90px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:3rem;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+}
+.cam-controls{
+  padding:0.75rem 1rem;
+  background:var(--dark);
+  display:flex;
+  gap:0.75rem;
+  align-items:center;
+}
+.btn{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.75rem;
+  padding:0.55rem 1.1rem;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  font-weight:500;
+  transition:all 0.15s;
+  display:inline-flex;
+  align-items:center;
+  gap:0.4rem;
+}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:#1a4ecb}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#059669}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-ghost{background:rgba(255,255,255,0.08);color:#94a3b8;border:1px solid rgba(255,255,255,0.1)}
+.btn-ghost:hover{background:rgba(255,255,255,0.15);color:#fff}
+.btn-sm{padding:0.35rem 0.75rem;font-size:0.68rem}
+.btn-outline{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+.btn-outline:hover{background:var(--primary-light)}
+
+/* LOG PANEL */
+.log-panel{display:flex;flex-direction:column;height:100%}
+.log-list{flex:1;overflow-y:auto;max-height:340px}
+.log-item{
+  display:flex;
+  align-items:center;
+  gap:0.75rem;
+  padding:0.75rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  animation:slideIn 0.3s ease;
+}
+.log-avatar{
+  width:36px;height:36px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;
+  flex-shrink:0;
+}
+.log-info{flex:1;min-width:0}
+.log-name{font-weight:500;font-size:0.82rem;truncate:ellipsis}
+.log-time{font-size:0.68rem;color:var(--muted);margin-top:0.1rem}
+.log-status{
+  font-size:0.65rem;
+  padding:0.2rem 0.55rem;
+  border-radius:2rem;
+  font-weight:500;
+  flex-shrink:0;
+}
+.status-present{background:var(--success-light);color:var(--success)}
+.status-absent{background:var(--danger-light);color:var(--danger)}
+.status-late{background:var(--warn-light);color:var(--warn)}
+
+/* TABLE */
+.table-card{
+  background:var(--card);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  overflow:hidden;
+}
+.table-header{
+  padding:1rem 1.5rem;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  flex-wrap:wrap;
+}
+.table-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem}
+.search-box{
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:0.4rem 0.75rem;
+}
+.search-box input{
+  border:none;
+  background:none;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.78rem;
+  color:var(--text);
+  outline:none;
+  width:180px;
+}
+table{width:100%;border-collapse:collapse}
+th{
+  font-size:0.65rem;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+  padding:0.75rem 1.5rem;
+  text-align:left;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+  font-weight:500;
+}
+td{
+  padding:0.85rem 1.5rem;
+  border-bottom:1px solid var(--border);
+  font-size:0.8rem;
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(26,86,219,0.02)}
+.student-cell{display:flex;align-items:center;gap:0.75rem}
+.student-avatar{
+  width:32px;height:32px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;
+  flex-shrink:0;
+}
+.student-name{font-weight:500}
+.student-id{font-size:0.65rem;color:var(--muted)}
+.rate-bar{
+  height:6px;
+  background:var(--bg);
+  border-radius:3px;
+  overflow:hidden;
+  width:80px;
+  display:inline-block;
+  vertical-align:middle;
+  margin-right:0.4rem;
+}
+.rate-fill{height:100%;border-radius:3px}
+
+/* CHARTS (CSS-only bars) */
+.chart-section{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1.5rem;
+  margin-top:1.5rem;
+}
+.bar-chart{padding:1.25rem 1.5rem}
+.bar-row{
+  display:flex;
+  align-items:center;
+  gap:0.75rem;
+  margin-bottom:0.75rem;
+}
+.bar-label{font-size:0.7rem;color:var(--muted);width:30px;flex-shrink:0;text-align:right}
+.bar-track{flex:1;height:10px;background:var(--bg);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;background:var(--primary);transition:width 1s ease}
+.bar-val{font-size:0.68rem;color:var(--text);width:30px;flex-shrink:0}
+
+/* REGISTER FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:0.4rem}
+.form-label{font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
+.form-input{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.82rem;
+  padding:0.6rem 0.85rem;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:var(--bg);
+  color:var(--text);
+  outline:none;
+  transition:border-color 0.15s;
+}
+.form-input:focus{border-color:var(--primary);background:#fff}
+.form-select{
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.82rem;
+  padding:0.6rem 0.85rem;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:var(--bg);
+  color:var(--text);
+  outline:none;
+  appearance:none;
+}
+.face-capture{
+  background:var(--dark);
+  border-radius:12px;
+  height:180px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:0.75rem;
+  color:#64748b;
+  font-size:0.8rem;
+  cursor:pointer;
+  border:2px dashed #1e293b;
+  transition:all 0.2s;
+  position:relative;
+  overflow:hidden;
+}
+.face-capture:hover{border-color:var(--primary);color:var(--primary)}
+.face-capture.captured{border-color:var(--success);color:var(--success)}
+.capture-icon{font-size:2.5rem}
+
+/* NOTIFICATION TOAST */
+.toast{
+  position:fixed;
+  bottom:2rem;
+  right:2rem;
+  background:var(--dark);
+  color:#fff;
+  padding:0.85rem 1.25rem;
+  border-radius:12px;
+  font-size:0.8rem;
+  display:flex;
+  align-items:center;
+  gap:0.75rem;
+  box-shadow:var(--shadow-lg);
+  transform:translateX(120%);
+  transition:transform 0.3s ease;
+  z-index:999;
+  border-left:3px solid var(--success);
+  max-width:320px;
+}
+.toast.show{transform:translateX(0)}
+.toast.error{border-color:var(--danger)}
+
+/* PAGE HEADER */
+.page-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:1.5rem;
+  flex-wrap:wrap;
+  gap:1rem;
+}
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem}
+.page-sub{font-size:0.72rem;color:var(--muted);margin-top:0.2rem}
+.date-filter{
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:0.4rem 0.75rem;
+  font-size:0.75rem;
+  color:var(--muted);
+}
+.date-filter input{
+  border:none;background:none;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.75rem;color:var(--text);outline:none;
+}
+
+/* RECOGNITION ANIMATION */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes scanLine{0%{top:0}100%{top:100%}}
+@keyframes detectFace{
+  0%{opacity:0;transform:scale(0.8)}
+  10%{opacity:1;transform:scale(1)}
+  85%{opacity:1;transform:scale(1)}
+  100%{opacity:0;transform:scale(0.8)}
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.animate-in{animation:fadeIn 0.4s ease both}
+
+/* AI THINKING */
+.ai-thinking{
+  display:flex;align-items:center;gap:0.4rem;
+  font-size:0.68rem;color:var(--primary);
+}
+.dot-bounce{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--primary);
+  animation:dotBounce 1.4s infinite ease-in-out;
+}
+.dot-bounce:nth-child(2){animation-delay:0.2s}
+.dot-bounce:nth-child(3){animation-delay:0.4s}
+@keyframes dotBounce{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .cam-section{grid-template-columns:1fr}
+  .chart-section{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* SECTION CARDS */
+.section-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  margin-bottom:1.5rem;
+}
+.section-card-header{
+  padding:1rem 1.5rem;
+  border-bottom:1px solid var(--border);
+  font-family:'Syne',sans-serif;
+  font-weight:700;
+  font-size:0.9rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.section-card-body{padding:1.5rem}
+
+/* TAG */
+.tag{
+  display:inline-flex;align-items:center;gap:0.3rem;
+  font-size:0.65rem;padding:0.2rem 0.55rem;
+  border-radius:2rem;font-weight:500;
+}
+.tag-blue{background:var(--primary-light);color:var(--primary)}
+.tag-green{background:var(--success-light);color:var(--success)}
+
+/* EMPTY STATE */
+.empty-state{
+  text-align:center;padding:3rem 1rem;
+  color:var(--muted);font-size:0.8rem;
+}
+.empty-icon{font-size:3rem;margin-bottom:0.75rem;opacity:0.4}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-dot"></div>
+    Smart Attendance System
+  </div>
+  <div class="topbar-right">
+    <span class="live-badge">● AI Live</span>
+    <span id="clock">--:--:--</span>
+    <span id="topDate" style="color:#64748b">---</span>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">Main</div>
+    <button class="nav-item active" onclick="showPage('dashboard')">
+      <span class="nav-icon">🏠</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('camera')">
+      <span class="nav-icon">📷</span> Live Detection
+      <span class="nav-badge" id="camBadge">AI</span>
+    </button>
+    <button class="nav-item" onclick="showPage('attendance')">
+      <span class="nav-icon">📋</span> Attendance Log
+    </button>
+
+    <div class="sidebar-section">Students</div>
+    <button class="nav-item" onclick="showPage('students')">
+      <span class="nav-icon">👥</span> All Students
+    </button>
+    <button class="nav-item" onclick="showPage('register')">
+      <span class="nav-icon">➕</span> Register Student
+    </button>
+
+    <div class="sidebar-section">Reports</div>
+    <button class="nav-item" onclick="showPage('reports')">
+      <span class="nav-icon">📊</span> Analytics
+    </button>
+
+    <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)">
+      <div style="padding:0.75rem;background:var(--primary-light);border-radius:10px;font-size:0.7rem;">
+        <div style="color:var(--primary);font-weight:600;margin-bottom:0.3rem;">🤖 AI Model</div>
+        <div style="color:var(--muted)">FaceNet v2.1 · 98.4% accuracy</div>
+        <div style="color:var(--muted)">Recognition: &lt; 200ms</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active animate-in">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub">Today's attendance overview</div>
+        </div>
+        <div class="date-filter">
+          📅 <span id="todayLabel">Today</span>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card blue">
+          <div class="stat-label">Total Students</div>
+          <div class="stat-val blue" id="statTotal">24</div>
+          <div class="stat-sub">Enrolled this semester</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Present Today</div>
+          <div class="stat-val green" id="statPresent">0</div>
+          <div class="stat-sub">Marked by AI system</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Absent</div>
+          <div class="stat-val red" id="statAbsent">24</div>
+          <div class="stat-sub">Not yet detected</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">Attendance Rate</div>
+          <div class="stat-val amber" id="statRate">0%</div>
+          <div class="stat-sub">Today's class rate</div>
+        </div>
+      </div>
+
+      <!-- CAM + LOG -->
+      <div class="cam-section">
+        <div class="cam-card">
+          <div class="cam-header">
+            <div class="cam-title">📷 AI Camera Feed</div>
+            <div class="ai-thinking" id="aiStatus">
+              <div class="dot-bounce"></div>
+              <div class="dot-bounce"></div>
+              <div class="dot-bounce"></div>
+              Scanning for faces...
+            </div>
+          </div>
+          <div class="cam-body">
+            <div class="camera-feed" id="cameraFeed">
+              <div class="grid-overlay"></div>
+              <div class="scan-line"></div>
+              <div class="camera-placeholder" id="camPlaceholder">
+                <div style="font-size:3rem;opacity:0.3">📷</div>
+                <div style="color:#475569">Click "Start Detection" to begin</div>
+              </div>
+              <!-- Face boxes will be injected here -->
+            </div>
+          </div>
+          <div class="cam-controls">
+            <button class="btn btn-success" id="startBtn" onclick="startDetection()">▶ Start Detection</button>
+            <button class="btn btn-ghost" id="stopBtn" onclick="stopDetection()" style="display:none">⏹ Stop</button>
+            <button class="btn btn-ghost" onclick="showPage('register')">➕ Register Face</button>
+            <span style="margin-left:auto;font-size:0.68rem;color:#64748b" id="fpsCounter"></span>
+          </div>
+        </div>
+
+        <div class="cam-card log-panel">
+          <div class="cam-header">
+            <div class="cam-title">⚡ Live Recognition Log</div>
+            <span class="tag tag-green" id="logCount">0 marked</span>
+          </div>
+          <div class="log-list" id="logList">
+            <div class="empty-state">
+              <div class="empty-icon">👁️</div>
+              Recognition events will appear here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHART ROW -->
+      <div class="chart-section">
+        <div class="section-card">
+          <div class="section-card-header">📈 Weekly Attendance</div>
+          <div class="section-card-body bar-chart" id="weekChart"></div>
+        </div>
+        <div class="section-card">
+          <div class="section-card-header">🏆 Top Attendees</div>
+          <div class="section-card-body" id="topList" style="padding:0"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE DETECTION (full page) -->
+    <div id="page-camera" class="page animate-in">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Live Detection</div>
+          <div class="page-sub">Real-time AI face recognition</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('register')">➕ Register New Student</button>
+      </div>
+      <div class="section-card" style="margin-bottom:1.5rem">
+        <div class="section-card-header">
+          AI Recognition Settings
+          <span class="tag tag-blue">FaceNet v2.1</span>
+        </div>
+        <div class="section-card-body">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem">
+            <div>
+              <div class="form-label">Confidence Threshold</div>
+              <input type="range" min="50" max="99" value="85" style="width:100%;margin-top:0.5rem" oninput="document.getElementById('confVal').textContent=this.value+'%'">
+              <div style="font-size:0.75rem;color:var(--primary);margin-top:0.25rem" id="confVal">85%</div>
+            </div>
+            <div>
+              <div class="form-label">Detection Mode</div>
+              <select class="form-select" style="margin-top:0.5rem;width:100%">
+                <option>Real-time (30fps)</option>
+                <option>Accurate (10fps)</option>
+                <option>Fast (60fps)</option>
+              </select>
+            </div>
+            <div>
+              <div class="form-label">Auto Mark After</div>
+              <select class="form-select" style="margin-top:0.5rem;width:100%">
+                <option>1 second</option>
+                <option selected>2 seconds</option>
+                <option>5 seconds</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--dark);border-radius:14px;padding:1.5rem;color:#94a3b8;font-size:0.78rem;line-height:1.8">
+        <div style="color:#fff;font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.75rem">🤖 How the AI Works</div>
+        <div>1. Camera captures live video frames at 30fps</div>
+        <div>2. FaceNet model detects and extracts face embeddings (128-dimensional vectors)</div>
+        <div>3. Embeddings are compared against enrolled students using cosine similarity</div>
+        <div>4. If similarity &gt; threshold (85%), student is marked Present with timestamp</div>
+        <div>5. Attendance is saved to database and report is updated in real-time</div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE LOG -->
+    <div id="page-attendance" class="page animate-in">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Attendance Log</div>
+          <div class="page-sub">Full attendance record</div>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
+          <button class="btn btn-primary" onclick="startDetection();showPage('dashboard')">▶ Mark Attendance</button>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Today's Attendance</span>
+          <div class="search-box">
+            🔍 <input type="text" placeholder="Search student..." oninput="filterTable(this.value)">
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="attendanceTable">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>ID</th>
+                <th>Course</th>
+                <th>Time In</th>
+                <th>Method</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div id="page-students" class="page animate-in">
+      <div class="page-header">
+        <div>
+          <div class="page-title">All Students</div>
+          <div class="page-sub" id="studentCount">24 enrolled students</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('register')">➕ Register New</button>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Student Database</span>
+          <div class="search-box">
+            🔍 <input type="text" placeholder="Search..." oninput="filterStudents(this.value)">
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="studentsTable">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>ID</th>
+                <th>Course</th>
+                <th>Face Enrolled</th>
+                <th>Attendance Rate</th>
+                <th>Last Seen</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="page-register" class="page animate-in">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Register Student</div>
+          <div class="page-sub">Add new student to the AI recognition system</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem">
+        <div class="section-card">
+          <div class="section-card-header">Student Information</div>
+          <div class="section-card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input class="form-input" id="regName" placeholder="e.g. Ahmed Mohamed">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Student ID *</label>
+                <input class="form-input" id="regId" placeholder="e.g. STU-2025-001">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Course / Class</label>
+                <select class="form-select" id="regCourse">
+                  <option>AI & Machine Learning</option>
+                  <option>Computer Science</option>
+                  <option>Data Science</option>
+                  <option>Software Engineering</option>
+                  <option>Cybersecurity</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input class="form-input" id="regEmail" placeholder="student@university.edu">
+              </div>
+              <div class="form-group" style="grid-column:1/-1">
+                <label class="form-label">Phone Number</label>
+                <input class="form-input" id="regPhone" placeholder="+1 234 567 8900">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="section-card" style="margin-bottom:1rem">
+            <div class="section-card-header">Face Registration</div>
+            <div class="section-card-body">
+              <div class="face-capture" id="captureBox" onclick="captureFace()">
+                <div class="capture-icon" id="captureIcon">🤳</div>
+                <div id="captureText">Click to capture face</div>
+                <div style="font-size:0.65rem;color:var(--muted)" id="captureHint">Position face in camera</div>
+              </div>
+              <div style="margin-top:1rem;font-size:0.7rem;color:var(--muted);line-height:1.7">
+                <div>✓ Look directly at camera</div>
+                <div>✓ Good lighting required</div>
+                <div>✓ 3–5 photos captured automatically</div>
+                <div>✓ Face embedding stored securely</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.75rem" onclick="registerStudent()">
+            ✓ Register Student
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div id="page-reports" class="page animate-in">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Analytics</div>
+          <div class="page-sub">Attendance statistics and insights</div>
+        </div>
+        <button class="btn btn-outline" onclick="exportCSV()">⬇ Export Report</button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card blue">
+          <div class="stat-label">Avg Daily Rate</div>
+          <div class="stat-val blue">73%</div>
+          <div class="stat-sub">This month</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Best Day</div>
+          <div class="stat-val green">92%</div>
+          <div class="stat-sub">Last Monday</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label">AI Accuracy</div>
+          <div class="stat-val amber">98.4%</div>
+          <div class="stat-sub">FaceNet model</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">At Risk</div>
+          <div class="stat-val red">3</div>
+          <div class="stat-sub">Below 60% rate</div>
+        </div>
+      </div>
+      <div class="chart-section">
+        <div class="section-card">
+          <div class="section-card-header">📅 Monthly Trend</div>
+          <div class="section-card-body bar-chart" id="monthChart"></div>
+        </div>
+        <div class="section-card">
+          <div class="section-card-header">📊 Course Breakdown</div>
+          <div class="section-card-body bar-chart" id="courseChart"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────
+const STUDENTS = [
+  {id:'STU-001',name:'Ahmed Hassan',emoji:'👨‍💻',course:'AI & Machine Learning',rate:92,lastSeen:'Today 08:42',faceEnrolled:true},
+  {id:'STU-002',name:'Sara Mohamed',emoji:'👩‍🎓',course:'Data Science',rate:88,lastSeen:'Today 09:01',faceEnrolled:true},
+  {id:'STU-003',name:'Omar Ali',emoji:'🧑‍💻',course:'AI & Machine Learning',rate:76,lastSeen:'Yesterday',faceEnrolled:true},
+  {id:'STU-004',name:'Layla Ibrahim',emoji:'👩‍💻',course:'Computer Science',rate:95,lastSeen:'Today 08:55',faceEnrolled:true},
+  {id:'STU-005',name:'Karim Youssef',emoji:'👨‍🎓',course:'Software Engineering',rate:62,lastSeen:'2 days ago',faceEnrolled:true},
+  {id:'STU-006',name:'Nour Ahmed',emoji:'👩‍🔬',course:'Data Science',rate:84,lastSeen:'Today 09:12',faceEnrolled:true},
+  {id:'STU-007',name:'Tarek Samir',emoji:'👨‍🔬',course:'Cybersecurity',rate:71,lastSeen:'Yesterday',faceEnrolled:false},
+  {id:'STU-008',name:'Hana Khalil',emoji:'👩‍🏫',course:'AI & Machine Learning',rate:89,lastSeen:'Today 08:30',faceEnrolled:true},
+  {id:'STU-009',name:'Yusuf Ramadan',emoji:'👨‍🏫',course:'Computer Science',rate:55,lastSeen:'3 days ago',faceEnrolled:true},
+  {id:'STU-010',name:'Mona Farid',emoji:'👩‍💼',course:'Software Engineering',rate:97,lastSeen:'Today 08:48',faceEnrolled:true},
+  {id:'STU-011',name:'Ziad Nasser',emoji:'👨‍💼',course:'Data Science',rate:68,lastSeen:'Yesterday',faceEnrolled:true},
+  {id:'STU-012',name:'Rania Sherif',emoji:'🧕',course:'AI & Machine Learning',rate:91,lastSeen:'Today 09:00',faceEnrolled:true},
+];
+
+let attendanceLog = [];
+let detectionInterval = null;
+let isDetecting = false;
+let presentToday = new Set();
+let studentIndex = 0;
+
+// ─── CLOCK ───────────────────────────────────────────
+function updateClock(){
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString();
+  document.getElementById('topDate').textContent = now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  document.getElementById('todayLabel').textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+}
+setInterval(updateClock,1000);
+updateClock();
+
+// ─── NAVIGATION ───────────────────────────────────────
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.textContent.trim().toLowerCase().includes(name.replace('-',' '))||
+      (name==='dashboard'&&n.textContent.includes('Dashboard'))||
+      (name==='camera'&&n.textContent.includes('Detection'))||
+      (name==='attendance'&&n.textContent.includes('Attendance'))||
+      (name==='students'&&n.textContent.includes('All'))||
+      (name==='register'&&n.textContent.includes('Register'))||
+      (name==='reports'&&n.textContent.includes('Analytics'))){
+      n.classList.add('active');
+    }
+  });
+  if(name==='students') renderStudentsTable(STUDENTS);
+  if(name==='attendance') renderAttendanceTable();
+  if(name==='reports') renderCharts();
+}
+
+// ─── DETECTION ───────────────────────────────────────
+function startDetection(){
+  if(isDetecting) return;
+  isDetecting = true;
+  document.getElementById('camPlaceholder').classList.add('hidden');
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('stopBtn').style.display='';
+  document.getElementById('fpsCounter').textContent='30fps · AI Active';
+  showToast('🟢 AI Detection started — scanning for faces');
+  let fps=0;
+  detectionInterval = setInterval(()=>{
+    fps++;
+    if(fps%60===0) detectNextFace();
+  },33);
+  setTimeout(detectNextFace,800);
+}
+
+function stopDetection(){
+  isDetecting = false;
+  clearInterval(detectionInterval);
+  document.getElementById('startBtn').style.display='';
+  document.getElementById('stopBtn').style.display='none';
+  document.getElementById('fpsCounter').textContent='';
+  document.getElementById('aiStatus').innerHTML=`<div class="dot-bounce"></div><div class="dot-bounce"></div><div class="dot-bounce"></div> Scanning for faces...`;
+  // clear face boxes
+  document.querySelectorAll('.face-box').forEach(f=>f.remove());
+  showToast('⏹ Detection stopped','error');
+}
+
+function detectNextFace(){
+  if(!isDetecting) return;
+  if(studentIndex >= STUDENTS.length){ studentIndex=0; return; }
+  const student = STUDENTS[studentIndex];
+  studentIndex++;
+
+  // Show face box on camera
+  showFaceBox(student);
+
+  // Update AI status
+  document.getElementById('aiStatus').innerHTML=`Recognizing: <strong style="color:var(--primary)">${student.name}</strong>`;
+
+  setTimeout(()=>{
+    if(!presentToday.has(student.id)){
+      presentToday.add(student.id);
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      const late = now.getHours() >= 9;
+      const entry = {student, time:timeStr, status: late?'Late':'Present', confidence: (85+Math.random()*14).toFixed(1)};
+      attendanceLog.unshift(entry);
+      addLogItem(entry);
+      updateStats();
+    }
+    if(isDetecting) document.getElementById('aiStatus').innerHTML=`<div class="dot-bounce"></div><div class="dot-bounce"></div><div class="dot-bounce"></div> Scanning for faces...`;
+  },1800);
+}
+
+function showFaceBox(student){
+  document.querySelectorAll('.face-box').forEach(f=>f.remove());
+  const feed = document.getElementById('cameraFeed');
+  const box = document.createElement('div');
+  box.className = 'face-box';
+  const left = 20 + Math.random()*40;
+  const top = 10 + Math.random()*50;
+  box.style.cssText = `left:${left}%;top:${top}%;width:120px;height:130px`;
+  box.innerHTML = `
+    <div class="face-confidence">${(85+Math.random()*14).toFixed(1)}% match</div>
+    <div class="face-avatar">${student.emoji}</div>
+    <div class="face-label">${student.name.split(' ')[0]}</div>
+  `;
+  feed.appendChild(box);
+  setTimeout(()=>box.remove(),3500);
+}
+
+// ─── LOG ───────────────────────────────────────────
+function addLogItem(entry){
+  const list = document.getElementById('logList');
+  if(list.querySelector('.empty-state')) list.innerHTML='';
+  const div = document.createElement('div');
+  div.className='log-item';
+  div.innerHTML=`
+    <div class="log-avatar">${entry.student.emoji}</div>
+    <div class="log-info">
+      <div class="log-name">${entry.student.name}</div>
+      <div class="log-time">${entry.student.id} · ${entry.student.course.split(' ')[0]} · ${entry.confidence}% conf.</div>
+    </div>
+    <div class="log-status status-${entry.status.toLowerCase()}">${entry.status}</div>
+  `;
+  list.insertBefore(div,list.firstChild);
+  document.getElementById('logCount').textContent=`${presentToday.size} marked`;
+  showToast(`✅ ${entry.student.name} marked ${entry.status}`);
+}
+
+// ─── STATS ───────────────────────────────────────────
+function updateStats(){
+  const total = STUDENTS.length;
+  const present = presentToday.size;
+  const absent = total - present;
+  const rate = Math.round((present/total)*100);
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPresent').textContent = present;
+  document.getElementById('statAbsent').textContent = absent;
+  document.getElementById('statRate').textContent = rate+'%';
+}
+updateStats();
+
+// ─── STUDENTS TABLE ───────────────────────────────────
+function renderStudentsTable(data){
+  const tbody = document.getElementById('studentsTbody');
+  tbody.innerHTML = data.map(s=>{
+    const rateColor = s.rate>=80?'var(--success)':s.rate>=60?'var(--warn)':'var(--danger)';
+    return `<tr>
+      <td><div class="student-cell">
+        <div class="student-avatar" style="background:${rateColor}22">${s.emoji}</div>
+        <div><div class="student-name">${s.name}</div></div>
+      </div></td>
+      <td style="color:var(--muted)">${s.id}</td>
+      <td><span class="tag tag-blue">${s.course.split(' ').slice(0,2).join(' ')}</span></td>
+      <td>${s.faceEnrolled?'<span class="tag tag-green">✓ Enrolled</span>':'<span style="color:var(--muted);font-size:0.72rem">Not enrolled</span>'}</td>
+      <td>
+        <div class="rate-bar"><div class="rate-fill" style="width:${s.rate}%;background:${rateColor}"></div></div>
+        <span style="font-size:0.75rem;color:${rateColor}">${s.rate}%</span>
+      </td>
+      <td style="color:var(--muted);font-size:0.75rem">${s.lastSeen}</td>
+      <td>
+        <button class="btn btn-sm btn-outline" onclick="showToast('📊 Viewing ${s.name.split(' ')[0]} profile')">View</button>
+        <button class="btn btn-sm" style="background:var(--danger-light);color:var(--danger);margin-left:4px" onclick="showToast('🗑 Remove student?','error')">Remove</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('studentCount').textContent = data.length + ' enrolled students';
+}
+
+function filterStudents(q){
+  const filtered = STUDENTS.filter(s=>s.name.toLowerCase().includes(q.toLowerCase())||s.id.toLowerCase().includes(q.toLowerCase()));
+  renderStudentsTable(filtered);
+}
+
+// ─── ATTENDANCE TABLE ───────────────────────────────────
+function renderAttendanceTable(){
+  const tbody = document.getElementById('attendanceTbody');
+  const allEntries = [...attendanceLog];
+  // Add absent entries for students not present
+  STUDENTS.forEach(s=>{
+    if(!presentToday.has(s.id)){
+      allEntries.push({student:s,time:'—',status:'Absent',confidence:'—'});
+    }
+  });
+  if(allEntries.length===0){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div>No attendance records yet. Start detection.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = allEntries.map(e=>`<tr>
+    <td><div class="student-cell">
+      <div class="student-avatar">${e.student.emoji}</div>
+      <div class="student-name">${e.student.name}</div>
+    </div></td>
+    <td style="color:var(--muted)">${e.student.id}</td>
+    <td>${e.student.course.split(' ').slice(0,2).join(' ')}</td>
+    <td style="color:${e.status==='Absent'?'var(--muted)':'var(--text)'}">${e.time}</td>
+    <td style="font-size:0.72rem;color:var(--muted)">${e.status==='Absent'?'—':'AI Face Recog.'}</td>
+    <td><span class="log-status status-${e.status.toLowerCase()}">${e.status}</span></td>
+    <td><button class="btn btn-sm btn-outline" onclick="toggleStatus('${e.student.id}')">Edit</button></td>
+  </tr>`).join('');
+}
+
+function filterTable(q){
+  document.querySelectorAll('#attendanceTbody tr').forEach(row=>{
+    row.style.display=row.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
+  });
+}
+
+function toggleStatus(id){
+  showToast('📝 Manual override saved');
+}
+
+// ─── CHARTS ───────────────────────────────────────────
+function renderCharts(){
+  const weekDays = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+  const weekData = [78,85,72,91,68,80];
+  document.getElementById('weekChart').innerHTML = weekDays.map((d,i)=>`
+    <div class="bar-row">
+      <div class="bar-label">${d}</div>
+      <div class="bar-track"><div class="rate-fill bar-fill" style="width:${weekData[i]}%;background:var(--primary)"></div></div>
+      <div class="bar-val">${weekData[i]}%</div>
+    </div>`).join('');
+
+  // Top list
+  const sorted = [...STUDENTS].sort((a,b)=>b.rate-a.rate).slice(0,5);
+  document.getElementById('topList').innerHTML = sorted.map((s,i)=>`
+    <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1.5rem;border-bottom:1px solid var(--border)">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--muted);width:20px">${i+1}</div>
+      <div class="student-avatar">${s.emoji}</div>
+      <div style="flex:1"><div style="font-size:0.82rem;font-weight:500">${s.name}</div>
+      <div style="font-size:0.68rem;color:var(--muted)">${s.course.split(' ')[0]}</div></div>
+      <div style="color:var(--success);font-weight:700;font-size:0.9rem">${s.rate}%</div>
+    </div>`).join('');
+
+  // Monthly
+  const months=['Jan','Feb','Mar','Apr','May','Jun'];
+  const mData=[65,70,68,75,80,73];
+  document.getElementById('monthChart').innerHTML = months.map((m,i)=>`
+    <div class="bar-row">
+      <div class="bar-label">${m}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${mData[i]}%;background:var(--success)"></div></div>
+      <div class="bar-val">${mData[i]}%</div>
+    </div>`).join('');
+
+  // Courses
+  const courses=[['AI & ML',88],['Data Sci',79],['CS',85],['SE',71],['Cyber',66]];
+  document.getElementById('courseChart').innerHTML = courses.map(([c,v])=>`
+    <div class="bar-row">
+      <div class="bar-label" style="width:50px;font-size:0.6rem">${c}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${v}%;background:var(--warn)"></div></div>
+      <div class="bar-val">${v}%</div>
+    </div>`).join('');
+}
+renderCharts();
+
+// ─── REGISTER ───────────────────────────────────────────
+let faceCaptured = false;
+function captureFace(){
+  const box = document.getElementById('captureBox');
+  const icon = document.getElementById('captureIcon');
+  const text = document.getElementById('captureText');
+  const hint = document.getElementById('captureHint');
+  box.style.opacity='0.7';
+  text.textContent='Capturing... (3 photos)';
+  setTimeout(()=>{
+    faceCaptured=true;
+    box.classList.add('captured');
+    icon.textContent='✅';
+    text.textContent='Face captured successfully!';
+    hint.textContent='3 photos taken · Embedding stored';
+    box.style.opacity='1';
+    showToast('📸 Face captured! 98.7% quality score');
+  },2000);
+}
+
+function registerStudent(){
+  const name = document.getElementById('regName').value.trim();
+  const id = document.getElementById('regId').value.trim();
+  if(!name){showToast('⚠ Please enter student name','error');return;}
+  if(!id){showToast('⚠ Please enter student ID','error');return;}
+  if(!faceCaptured){showToast('⚠ Please capture face first','error');return;}
+  const course = document.getElementById('regCourse').value;
+  const emojis=['🧑‍💻','👨‍🎓','👩‍🎓','🧑‍🔬','👨‍💻','👩‍💻'];
+  STUDENTS.push({id,name,emoji:emojis[Math.floor(Math.random()*emojis.length)],course,rate:100,lastSeen:'Just now',faceEnrolled:true});
+  document.getElementById('statTotal').textContent = STUDENTS.length;
+  showToast(`✅ ${name} registered successfully!`);
+  // Reset
+  document.getElementById('regName').value='';
+  document.getElementById('regId').value='';
+  document.getElementById('regEmail').value='';
+  document.getElementById('regPhone').value='';
+  faceCaptured=false;
+  document.getElementById('captureBox').classList.remove('captured');
+  document.getElementById('captureIcon').textContent='🤳';
+  document.getElementById('captureText').textContent='Click to capture face';
+  document.getElementById('captureHint').textContent='Position face in camera';
+  setTimeout(()=>showPage('students'),1000);
+}
+
+// ─── EXPORT ───────────────────────────────────────────
+function exportCSV(){
+  const rows=[['Student Name','ID','Course','Status','Time','Attendance Rate']];
+  STUDENTS.forEach(s=>{
+    const present=presentToday.has(s.id);
+    const entry=attendanceLog.find(l=>l.student.id===s.id);
+    rows.push([s.name,s.id,s.course,present?'Present':'Absent',entry?entry.time:'—',s.rate+'%']);
+  });
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`attendance_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  showToast('⬇ CSV exported successfully');
+}
+
+// ─── TOAST ───────────────────────────────────────────
+let toastTimer;
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type==='error'?' error':'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ─── INIT ───────────────────────────────────────────
+renderStudentsTable(STUDENTS);
+renderAttendanceTable();
+</script>
+</body>
+</html>
